@@ -8,7 +8,7 @@ use piston::window::Size;
 use super::GameObject;
 use super::PhysicalObject;
 
-const PLAYER_SPEED: f64 = 2.0;
+const PLAYER_SPEED: f64 = 20.0;
 const PLAYER_SIZE: f64 = 20.0;
 // Drift for this long after movement key is released.
 // You don't came to a hard stop in space!
@@ -79,8 +79,8 @@ impl GameObject for Player {
         // TODO: Prevent movement outside of boundaries.
         let radius = self.radius();
 
-        self.position().x += self.move_offset.x;
-        self.position().y += self.move_offset.y;
+        self.physical_object.apply(dt, &self.move_offset);
+        self.physical_object.update(dt);
 
         geom::restrict_to_bounds(
             &mut self.position(),

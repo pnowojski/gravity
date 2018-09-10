@@ -22,6 +22,26 @@ impl PhysicalObject {
             velocity: Vector2::new(0.0, 0.0)
         }
     }
+
+    pub fn update(&mut self, dt: f64) {
+        // v = s / t
+        // s = v * t
+        self.position.x += self.velocity.x * dt;
+        self.position.y += self.velocity.y * dt;
+    }
+
+    pub fn apply(&mut self, dt: f64, force: &Vector2) {
+        // F = m*a
+        // a = F/m
+
+        let ax = force.x / self.mass;
+        let ay = force.y / self.mass;
+
+        // dv = a*dt
+
+        self.velocity.x += ax * dt;
+        self.velocity.y += ay * dt;
+    }
 }
 // Every object that needs to be rendered on screen.
 pub trait GameObject {
@@ -63,5 +83,7 @@ pub trait GameObject {
     // Only call if debug mode is turned on.
     fn render_dbg(&self, _: &Context, _: &mut GlGraphics) {}
     // Handle updates to movement/animation/etc.
-    fn update(&mut self, _: f64, _: Size) {}
+    fn update(&mut self, dt: f64, _: Size) {
+        self.physical_object().update(dt)
+    }
 }
