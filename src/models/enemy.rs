@@ -19,7 +19,7 @@ pub struct Enemy {
 impl Enemy {
     pub fn new(x: f64, y: f64) -> Enemy {
         return Enemy {
-            physical_object: PhysicalObject::new(geom::Vector2::new(x, y)),
+            physical_object: PhysicalObject::new(1_000_000_000.0, geom::Vector2::new(x, y)),
             size: ENEMY_RADIUS * 2.0,
         };
     }

@@ -127,21 +127,41 @@ impl<'a> App<'a> {
     pub fn update(&mut self, args: &UpdateArgs) {
         let size = self.window.settings.size();
 
-        // Update player & enemies
-        self.player.update(args.dt, size);
         // If number of enemies is zero... spawn more!
         if self.enemies.len() == 0 {
             let size = self.window.settings.size();
             for _ in 0..10 {
-                self.enemies.push(Enemy::new_rand(size.width as f64, size.height as f64));
+                let enemy = Enemy::new_rand(size.width as f64, size.height as f64);
+                self.enemies.push(enemy);
             }
         }
 
         for enemy in self.enemies.iter_mut() {
-            enemy.update(args.dt, size);
+            let force = self.player.interact(args.dt, enemy);
+//            if (self.debug_mode) {
+//                println!("Cacluated gravity interaction force {}", force);
+//            }
+        }
+
+//        for i in 0..self.enemies.len() {
+//            for j in i..self.enemies.len() {
+//                let first = self.enemies.get_mut(i).expect("This shouldn't happen");
+//                let second = self.enemies.get_mut(j).expect("This shouldn't happen");
+//                first.interact(args.dt, second);
+//            }
+//        }
+
+        self.player.update(args.dt, size);
+
+        for object in self.enemies.iter_mut() {
+            object.update(args.dt, size);
             // If the player collides with an enemy, game over!
-            if enemy.collides(&mut self.player) {
+            if object.collides(&mut self.player) {
             }
+        }
+
+        if (self.debug_mode) {
+            println!("player.vx = {} player.vy = {}", self.player.physical_object.velocity.x, self.player.physical_object.velocity.y)
         }
     }
 }

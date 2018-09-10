@@ -8,7 +8,7 @@ use piston::window::Size;
 use super::GameObject;
 use super::PhysicalObject;
 
-const PLAYER_SPEED: f64 = 20.0;
+const PLAYER_SPEED: f64 = 200_000_000.0;
 const PLAYER_SIZE: f64 = 20.0;
 // Drift for this long after movement key is released.
 // You don't came to a hard stop in space!
@@ -24,7 +24,7 @@ pub struct Player {
 impl Player {
     pub fn new(x: f64, y: f64) -> Player {
         return Player {
-            physical_object: PhysicalObject::new(geom::Vector2::new(x, y)),
+            physical_object: PhysicalObject::new(1000_000.0, geom::Vector2::new(x, y)),
             drift_ttl: 0.0,
             move_offset: geom::Vector2::new(0.0, 0.0),
             size: PLAYER_SIZE,
