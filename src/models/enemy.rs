@@ -7,18 +7,19 @@ use color;
 use geom;
 use piston::window::Size;
 use super::GameObject;
+use super::PhysicalObject;
 
 const ENEMY_RADIUS: f64 = 10.0;
 
 pub struct Enemy {
-    pub pos: geom::Position,
+    pub physical_object: PhysicalObject,
     pub size: f64,
 }
 
 impl Enemy {
     pub fn new(x: f64, y: f64) -> Enemy {
         return Enemy {
-            pos: geom::Position::new(x, y),
+            physical_object: PhysicalObject::new(geom::Vector2::new(x, y)),
             size: ENEMY_RADIUS * 2.0,
         };
     }
@@ -32,14 +33,12 @@ impl Enemy {
 }
 
 impl GameObject for Enemy {
-    fn position(&self) -> &geom::Position { &self.pos }
-    fn radius(&self) -> f64 { self.size / 2.0 }
 
     fn render(&self, ctxt: &Context, gl: &mut GlGraphics) {
         // Render the player as a little square
         let square = rectangle::square(0.0, 0.0, self.size);
-        let radius = self.radius();
-        let transform = ctxt.transform.trans(self.pos.x, self.pos.y)
+        let radius = self.get_physical_object().radius;
+        let transform = ctxt.transform.trans(self.get_position().x, self.get_position().y)
             .trans(-radius, -radius);
 
         rectangle(color::GREEN, square, transform, gl);
@@ -47,13 +46,13 @@ impl GameObject for Enemy {
 
     fn render_dbg(&self, ctxt: &Context, gl: &mut GlGraphics) {
         // Render collison box
-        let radius = self.radius();
+        let radius = self.get_physical_object().radius;
         let diam = radius * 2.0;
 
         let circle = rectangle::Rectangle::new_round_border(color::WHITE, radius, 1.0);
         // Center on x/y
         let transform = ctxt.transform
-            .trans(self.pos.x, self.pos.y)
+            .trans(self.get_position().x, self.get_position().y)
             .trans(-radius, -radius);
 
         circle.draw([0.0, 0.0, diam, diam], &ctxt.draw_state, transform, gl);
@@ -73,5 +72,13 @@ impl GameObject for Enemy {
 //        );
 
         // Don't move outside the bounds of the window.
+    }
+
+    fn physical_object(&mut self) -> &mut PhysicalObject {
+        &mut self.physical_object
+    }
+
+    fn get_physical_object(&self) -> &PhysicalObject {
+        &self.physical_object
     }
 }

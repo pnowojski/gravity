@@ -6,6 +6,7 @@ use geom;
 use geom::Direction;
 use piston::window::Size;
 use super::GameObject;
+use super::PhysicalObject;
 
 const PLAYER_SPEED: f64 = 2.0;
 const PLAYER_SIZE: f64 = 20.0;
@@ -14,26 +15,23 @@ const PLAYER_SIZE: f64 = 20.0;
 const PLAYER_DRIFT: f64 = 0.2;
 
 pub struct Player {
-    pub pos: geom::Position,
-    pub dir: Direction,
+    pub physical_object: PhysicalObject,
     pub size: f64,
     pub drift_ttl: f64,
-    move_offset: geom::Position,
+    move_offset: geom::Vector2,
 }
 
 impl Player {
     pub fn new(x: f64, y: f64) -> Player {
         return Player {
-            dir: Direction::EAST,
+            physical_object: PhysicalObject::new(geom::Vector2::new(x, y)),
             drift_ttl: 0.0,
-            move_offset: geom::Position::new(0.0, 0.0),
-            pos: geom::Position::new(x, y),
+            move_offset: geom::Vector2::new(0.0, 0.0),
             size: PLAYER_SIZE,
         };
     }
 
     pub fn start_move(&mut self, dir: Direction) {
-        self.dir = dir;
         match dir {
             Direction::WEST => self.move_offset.x = -PLAYER_SPEED,
             Direction::NORTH => self.move_offset.y = -PLAYER_SPEED,
@@ -43,7 +41,6 @@ impl Player {
     }
 
     pub fn stop_move(&mut self, dir: Direction) {
-        self.drift_ttl = PLAYER_DRIFT;
         match dir {
             Direction::WEST => self.move_offset.x = 0.0,
             Direction::NORTH => self.move_offset.y = 0.0,
@@ -54,39 +51,14 @@ impl Player {
 }
 
 impl GameObject for Player {
-    fn position(&self) -> &geom::Position { &self.pos }
-    fn radius(&self) -> f64 { self.size / 2.0 }
 
     fn render(&self, ctxt: &Context, gl: &mut GlGraphics) {
-        // Render the player as a little square
-        let shape = polygon::Polygon::new(color::RED);
-
-        // Rotate the player to the direction they're facing
-        let dir = match self.dir {
-            Direction::WEST => 0.0,
-            Direction::NORTH => 90.0,
-            Direction::EAST => 180.0,
-            Direction::SOUTH => 270.0,
-        };
-
-        let radius = self.radius();
-        let transform = ctxt.transform
-            .trans(self.pos.x, self.pos.y)
-            .rot_deg(dir)
+        let square = rectangle::square(0.0, 0.0, self.size);
+        let radius = self.get_physical_object().radius;
+        let transform = ctxt.transform.trans(self.get_position().x, self.get_position().y)
             .trans(-radius, -radius);
 
-        let points = [
-            [0.0, radius],
-            [self.size, self.size],
-            [self.size, 0.0]
-        ];
-
-        shape.draw(
-            &points,
-            &ctxt.draw_state,
-            transform,
-            gl
-        );
+        rectangle(color::RED, square, transform, gl);
     }
 
     fn render_dbg(&self, ctxt: &Context, gl: &mut GlGraphics) {
@@ -97,7 +69,7 @@ impl GameObject for Player {
         let circle = rectangle::Rectangle::new_round_border(color::WHITE, radius, 1.0);
         // Center on x/y
         let transform = ctxt.transform
-            .trans(self.pos.x, self.pos.y)
+            .trans(self.get_position().x, self.get_position().y)
             .trans(-radius, -radius);
 
         circle.draw([0.0, 0.0, diam, diam], &ctxt.draw_state, transform, gl);
@@ -107,24 +79,21 @@ impl GameObject for Player {
         // TODO: Prevent movement outside of boundaries.
         let radius = self.radius();
 
-        self.pos.x += self.move_offset.x;
-        self.pos.y += self.move_offset.y;
-
-        if self.drift_ttl > 0.0 {
-            self.drift_ttl -= dt;
-            let drift_speed = PLAYER_SPEED / 2.0;
-            match self.dir {
-                Direction::NORTH => self.pos.y -= drift_speed,
-                Direction::EAST => self.pos.x += drift_speed,
-                Direction::SOUTH => self.pos.y += drift_speed,
-                Direction::WEST => self.pos.x -= drift_speed,
-            }
-        }
+        self.position().x += self.move_offset.x;
+        self.position().y += self.move_offset.y;
 
         geom::restrict_to_bounds(
-            &mut self.pos,
+            &mut self.position(),
             [radius, radius, size.width as f64, size.height as f64]
         );
 
+    }
+
+    fn physical_object(&mut self) -> &mut PhysicalObject {
+        &mut self.physical_object
+    }
+
+    fn get_physical_object(&self) -> &PhysicalObject {
+        &self.physical_object
     }
 }

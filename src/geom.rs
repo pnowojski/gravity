@@ -6,18 +6,18 @@ pub enum Direction {
     SOUTH
 }
 
-pub struct Position {
+pub struct Vector2 {
     pub x: f64,
     pub y: f64
 }
 
-impl Position {
-    pub fn new(x: f64, y: f64) -> Position {
-        return Position { x, y };
+impl Vector2 {
+    pub fn new(x: f64, y: f64) -> Vector2 {
+        return Vector2 { x, y };
     }
 }
 
-pub fn restrict_to_bounds(pos: &mut Position, bounds: [f64; 4]) {
+pub fn restrict_to_bounds(pos: &mut Vector2, bounds: [f64; 4]) {
     // Make sure movement is within the window bounds.
     if pos.x - bounds[0] <= 0.0 {
         pos.x = bounds[0];

@@ -98,10 +98,10 @@ impl<'a> App<'a> {
         // Grab list of objects to render.
         let enemies = &self.enemies;
         let player = &self.player;
-        let gc = &mut self.glyph_cache;
+        let _gc = &mut self.glyph_cache;
 
         let debug_mode = self.debug_mode;
-        let size = self.window.settings.size();
+        let _size = self.window.settings.size();
 
         // Render stuff.
         self.window.gl.draw(args.viewport(), |c, gl| {
@@ -140,7 +140,7 @@ impl<'a> App<'a> {
         for enemy in self.enemies.iter_mut() {
             enemy.update(args.dt, size);
             // If the player collides with an enemy, game over!
-            if enemy.collides(&self.player) {
+            if enemy.collides(&mut self.player) {
             }
         }
     }
