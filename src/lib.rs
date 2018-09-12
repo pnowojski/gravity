@@ -17,6 +17,7 @@ mod models;
 use models::{GameObject};
 use models::enemy::Enemy;
 use models::player::Player;
+use geom::Vector2;
 
 const FIRE_COOLDOWN: f64 = 0.1; // Only allow user to shoot 10 bullets/sec.
 
@@ -130,38 +131,41 @@ impl<'a> App<'a> {
         // If number of enemies is zero... spawn more!
         if self.enemies.len() == 0 {
             let size = self.window.settings.size();
-            for _ in 0..10 {
-                let enemy = Enemy::new_rand(size.width as f64, size.height as f64);
-                self.enemies.push(enemy);
-            }
+            let enemy = Enemy::new_rand(size.width as f64, size.height as f64);
+            self.enemies.push(enemy);
         }
 
         for enemy in self.enemies.iter_mut() {
             let force = self.player.interact(args.dt, enemy);
-//            if (self.debug_mode) {
-//                println!("Cacluated gravity interaction force {}", force);
-//            }
+            if (self.debug_mode) {
+                println!("Calculated gravity interaction x = {} y = {}", force.x, force.y);
+            }
         }
 
-//        for i in 0..self.enemies.len() {
-//            for j in i..self.enemies.len() {
-//                let first = self.enemies.get_mut(i).expect("This shouldn't happen");
-//                let second = self.enemies.get_mut(j).expect("This shouldn't happen");
-//                first.interact(args.dt, second);
-//            }
-//        }
+        let mut forces: Vec<Vector2>= Vec::new();
+        for i in 0..self.enemies.len() {
+            forces.push(Vector2::new(0.0, 0.0));
+        }
+        for (i, first) in self.enemies.iter().enumerate() {
+            for (j, second) in self.enemies.iter().enumerate() {
+                if (i == j) {
+                    continue;
+                }
+                let force = first.calculate_interaction(args.dt, second);
+                forces.get_mut(i)
+                    .expect("can not happen")
+                    .add(&force);
+            }
+        }
+
+        for (i, enemy) in self.enemies.iter_mut().enumerate() {
+            enemy.physical_object().apply(args.dt, forces.get(i).expect("can not happen"));
+        }
 
         self.player.update(args.dt, size);
 
         for object in self.enemies.iter_mut() {
             object.update(args.dt, size);
-            // If the player collides with an enemy, game over!
-            if object.collides(&mut self.player) {
-            }
-        }
-
-        if (self.debug_mode) {
-            println!("player.vx = {} player.vy = {}", self.player.physical_object.velocity.x, self.player.physical_object.velocity.y)
         }
     }
 }

@@ -59,19 +59,15 @@ impl GameObject for Enemy {
     }
 
     fn update(&mut self, dt: f64, size: Size) {
-        // TODO: move based on forces
-//        let radius = self.radius();
-//        let mut rng = rand::thread_rng();
-//
-//        self.pos.x += rng.gen_range(0.0, MOVE_RADIUS * 2.0) - MOVE_RADIUS;
-//        self.pos.y += rng.gen_range(0.0, MOVE_RADIUS * 2.0) - MOVE_RADIUS;
-//
-//        geom::restrict_to_bounds(
-//            &mut self.pos,
-//            [radius, radius, size.width as f64, size.height as f64]
-//        );
+        // TODO: Prevent movement outside of boundaries.
+        let radius = self.radius();
 
-        // Don't move outside the bounds of the window.
+        self.physical_object.update(dt);
+
+        geom::restrict_to_bounds(
+            &mut self.position(),
+            [radius, radius, size.width as f64, size.height as f64]
+        );
     }
 
     fn physical_object(&mut self) -> &mut PhysicalObject {

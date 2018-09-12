@@ -47,7 +47,7 @@ impl PhysicalObject {
 // Every object that needs to be rendered on screen.
 pub trait GameObject {
 
-    fn interact(&mut self, dt: f64, other: &mut GameObject) -> f64 {
+    fn calculate_interaction(&self, dt: f64, other: &GameObject) -> Vector2 {
         // F = G*m1*m2/r^2
 
         let x = self.get_position().x - other.get_position().x;
@@ -56,12 +56,17 @@ pub trait GameObject {
         let y2 = y.powi(2);
 
         let r2 = x2 + y2;
+        if r2 < 1.0 {
+            // if objects are too close, do not shoot them apart
+            return Vector2::new(0.0, 0.0);
+        }
+
         let G = 6.674 / 100_000_000_000.0 * 10_000_000.0;
-        let F = G * self.physical_object().mass * other.physical_object().mass / r2;
+        let F = G * self.get_physical_object().mass * other.get_physical_object().mass / r2;
 
         // assume that F distributes proportionally to Fx and Fy components
-        let mut Fx = F * x2 / r2;
-        let mut Fy = F * y2 / r2;
+        let mut Fx = F * x2.sqrt() / r2.sqrt();
+        let mut Fy = F * y2.sqrt() / r2.sqrt();
 
         if self.get_position().x > other.get_position().x {
             Fx = -Fx
@@ -70,14 +75,17 @@ pub trait GameObject {
             Fy = -Fy
         }
 
-//        println!("Fx = {} Fy = {}", Fx, Fy);
-        self.physical_object().apply(dt, &Vector2::new(Fx, Fy));
-        other.physical_object().apply(dt, &Vector2::new(-Fx, -Fy));
-
-        F
+        Vector2::new(Fx, Fy)
     }
 
-    // Used to determine whether one object has collided with another
+    fn interact(&mut self, dt: f64, other: &GameObject) -> Vector2 {
+        let force = self.calculate_interaction(dt, other);
+        self.physical_object().apply(dt, &force);
+//        other.physical_object().apply(dt, &Vector2::new(-Fx, -Fy));
+        force
+    }
+
+        // Used to determine whether one object has collided with another
     // object.
     fn collides(&mut self, other: &mut GameObject) -> bool {
         // Two circles intersect if the distance between their centers is

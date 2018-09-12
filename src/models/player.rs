@@ -86,7 +86,6 @@ impl GameObject for Player {
             &mut self.position(),
             [radius, radius, size.width as f64, size.height as f64]
         );
-
     }
 
     fn physical_object(&mut self) -> &mut PhysicalObject {

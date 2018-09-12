@@ -15,6 +15,11 @@ impl Vector2 {
     pub fn new(x: f64, y: f64) -> Vector2 {
         return Vector2 { x, y };
     }
+
+    pub fn add(&mut self, other: &Vector2) {
+        self.x += other.x;
+        self.y += other.y;
+    }
 }
 
 pub fn restrict_to_bounds(pos: &mut Vector2, bounds: [f64; 4]) {
